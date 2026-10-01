@@ -1,1 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insta Gallery · friends2026</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* reset & base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
 
+    body {
+      min-height: 100vh;
+      /* "a naam ka photo wali pic background main hogi" — using a placeholder image from picsum with name 'a' */
+      background: url('https://picsum.photos/id/1005/1920/1080?grayscale&blur=2') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* dark overlay for readability */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(3px);
+      z-index: 0;
+    }
+
+    .gallery-container {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 32px;
+      padding: 24px 20px 32px;
+      box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding: 0 8px;
+    }
+
+    .header h1 {
+      color: white;
+      font-weight: 400;
+      font-size: 1.9rem;
+      letter-spacing: -0.5px;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header h1 i {
+      color: #feda75;
+      filter: drop-shadow(0 0 8px rgba(254, 218, 117, 0.4));
+    }
+
+    .repo-link {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 8px 18px;
+      border-radius: 40px;
+      color: white;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .repo-link i {
+      font-size: 1rem;
+    }
+
+    .repo-link:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.02);
+    }
+
+    /* Instagram-like grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 8px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 38px -6px rgba(0, 0, 0, 0.6);
+    }
+
+    .card-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #1a1a1a;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .card:hover .card-image img {
+      transform: scale(1.02);
+    }
+
+    /* like/share bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px 8px;
+      gap: 18px;
+      background: white;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #262626;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      padding: 4px 0;
+    }
+
+    .action-btn i {
+      transition: transform 0.1s;
+    }
+
+    .action-btn:hover i {
+      transform: scale(1.15);
+    }
+
+    .like-btn.liked {
+      color: #ed4956;
+    }
+
+    .like-btn.liked i {
+      font-weight: 900;
+    }
+
+    .like-count {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #262626;
+      margin-left: 2px;
+    }
+
+    /* comment section */
+    .comment-section {
+      padding: 0 16px 16px;
+      background: white;
+      border-top: 1px solid #efefef;
+      margin-top: 2px;
+    }
+
+    .comment-list {
+      max-height: 100px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #262626;
+      padding-right: 4px;
+    }
+
+    .comment-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .comment-item strong {
+      font-weight: 600;
+      color: #000;
+      min-width: 60px;
+    }
+
+    .comment-item span {
+      color: #555;
+      word-break: break-word;
+    }
+
+    .comment-input-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .comment-input-area input {
+      flex: 1;
+      border: 1px solid #dbdbdb;
+      border-radius: 30px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      outline: none;
+      background: #fafafa;
+      transition: border 0.2s;
+    }
+
+    .comment-input-area input:focus {
+      border-color: #a0a0a0;
+      background: white;
+    }
+
+    .comment-input-area button {
+      background: none;
+      border: none;
+      color: #0095f6;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 8px 6px;
+      border-radius: 20px;
+      transition: background 0.15s;
+    }
+
+    .comment-input-area button:hover {
+      background: #f0f8ff;
+    }
+
+    /* loading & error */
+    .status-message {
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 1.2rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      grid-column: 1 / -1;
+    }
+
+    .status-message i {
+      margin-right: 12px;
+      color: #feda75;
+    }
+
+    /* scrollbar for comments */
+    .comment-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .comment-list::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .gallery-container {
+        padding: 16px 12px 20px;
+      }
+      .header h1 {
+        font-size: 1.3rem;
+      }
+      .repo-link span {
+        display: none;
+      }
+      .repo-link {
+        padding: 8px 12px;
+      }
+      .gallery-grid {
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery-container">
+    <div class="header">
+      <h1>
+        <i class="fas fa-camera-retro"></i> 
+        Insta Gallery
+      </h1>
+      <a href="https://github.com/friends2026-jd/insta/tree/main" class="repo-link" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i> <span>friends2026-jd/insta</span>
+      </a>
+    </div>
+
+    <!-- Gallery grid will be populated by JavaScript -->
+    <div id="galleryGrid" class="gallery-grid">
+      <div class="status-message">
+        <i class="fas fa-spinner fa-pulse"></i> Loading gallery from GitHub...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // --------------------------------------------------------------
+      // CONFIGURATION
+      // --------------------------------------------------------------
+      const GITHUB_USER = 'friends2026-jd';
+      const REPO = 'insta';
+      const BRANCH = 'main';
+      const GALLERY_FOLDER = 'gallery';   // folder where photos are stored
+
+      // GitHub API endpoint to list contents of gallery folder
+      const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${GALLERY_FOLDER}?ref=${BRANCH}`;
+
+      // Base URL for raw file access
+      const RAW_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/${BRANCH}/${GALLERY_FOLDER}/`;
+
+      // Default background image (already set in CSS) — we just keep it as is.
+
+      // --------------------------------------------------------------
+      // DOM elements
+      const galleryGrid = document.getElementById('galleryGrid');
+
+      // --------------------------------------------------------------
+      // Helper: format numbers (like count)
+      function formatCount(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num;
+      }
+
+      // --------------------------------------------------------------
+      // Generate a random like count and liked state for demo
+      function getRandomLikeData() {
+        const base = Math.floor(Math.random() * 500) + 12;
+        const liked = Math.random() > 0.7; // 30% chance liked
+        return {
+          count: liked ? base + 1 : base,
+          liked: liked
+        };
+      }
+
+      // --------------------------------------------------------------
+      // Create a card for an image
+      function createCard(imageName, imageUrl) {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        // Random like data for each card (simulating insta post)
+        const likeData = getRandomLikeData();
+
+        // initial comments (a few sample comments per card)
+        const sampleComments = [
+          { user: 'alex', text: 'Amazing shot! 🔥' },
+          { user: 'sam', text: 'Love the vibes ✨' },
+          { user: 'jordan', text: 'So cool 😎' }
+        ];
+
+        // random pick 0-2 comments to show initially
+        const initialComments = sampleComments.slice(0, Math.floor(Math.random() * 3));
+
+        // ----- build HTML -----
+        // Image container
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'card-image';
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = imageName;
+        img.loading = 'lazy';
+        // fallback if image fails to load
+        img.onerror = function() {
+          this.src = 'https://picsum.photos/400/400?random=1'; // fallback placeholder
+        };
+        imageDiv.appendChild(img);
+
+        // Action bar (like, share)
+        const actionBar = document.createElement('div');
+        actionBar.className = 'action-bar';
+
+        // Like button
+        const likeBtn = document.createElement('button');
+        likeBtn.className = `action-btn like-btn ${likeData.liked ? 'liked' : ''}`;
+        likeBtn.innerHTML = `<i class="fa${likeData.liked ? 's' : 'r'} fa-heart"></i> <span class="like-count">${formatCount(likeData.count)}</span>`;
+        likeBtn.setAttribute('aria-label', 'Like');
+
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'action-btn share-btn';
+        shareBtn.innerHTML = `<i class="far fa-paper-plane"></i>`;
+        shareBtn.setAttribute('aria-label', 'Share');
+
+        actionBar.appendChild(likeBtn);
+        actionBar.appendChild(shareBtn);
+
+        // Comment section
+        const commentSection = document.createElement('div');
+        commentSection.className = 'comment-section';
+
+        // Comment list container
+        const commentList = document.createElement('div');
+        commentList.className = 'comment-list';
+
+        // add initial comments
+        initialComments.forEach(c => {
+          const commentDiv = document.createElement('div');
+          commentDiv.className = 'comment-item';
+          commentDiv.innerHTML = `<strong>${c.user}</strong><span>${c.text}</span>`;
+          commentList.appendChild(commentDiv);
+        });
+
+        // if no comments, add a placeholder? we can keep it empty, but shows blank.
+        if (initialComments.length === 0) {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.className = 'comment-item';
+          emptyDiv.style.color = '#8e8e8e';
+          emptyDiv.style.fontStyle = 'italic';
+          emptyDiv.textContent = 'No comments yet';
+          commentList.appendChild(emptyDiv);
+        }
+
+        // Input area
+        const inputArea = document.createElement('div');
+        inputArea.className = 'comment-input-area';
+
+        const commentInput = document.createElement('input');
+        commentInput.type = 'text';
+        commentInput.placeholder = 'Add a comment...';
+        commentInput.setAttribute('aria-label', 'Add comment');
+
+        const postBtn = document.createElement('button');
+        postBtn.textContent = 'Post';
+        postBtn.setAttribute('aria-label', 'Post comment');
+
+        inputArea.appendChild(commentInput);
+        inputArea.appendChild(postBtn);
+
+        // Assemble comment section
+        commentSection.appendChild(commentList);
+        commentSection.appendChild(inputArea);
+
+        // Append all to card
+        card.appendChild(imageDiv);
+        card.appendChild(actionBar);
+        card.appendChild(commentSection);
+
+        // --------------------------------------------------------------
+        // INTERACTIONS
+        // --------------------------------------------------------------
+
+        // --- Like button toggle ---
+        likeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const countSpan = this.querySelector('.like-count');
+          const icon = this.querySelector('i');
+          let currentCount = parseInt(countSpan.textContent.replace(/[^0-9KM]/g, '')) || 0;
+          // handle K/M formatting simple: we'll just use numeric count stored as data attribute
+          // better: store raw number in a property. For simplicity we'll re-calc using a simple method:
+          // instead of parsing, let's keep a raw count on the element
+          if (!this.dataset.rawCount) {
+            // initialize raw count from displayed (can be K format)
+            // To keep it simple, we'll just set rawCount based on display number * multiplier if needed
+            let display = countSpan.textContent.trim();
+            let num = parseFloat(display);
+            if (display.includes('K')) num *= 1000;
+            if (display.includes('M')) num *= 1000000;
+            this.dataset.rawCount = Math.floor(num);
+          }
+          let rawCount = parseInt(this.dataset.rawCount) || 0;
+
+          const isLiked = this.classList.contains('liked');
+          if (isLiked) {
+            // unlike
+            this.classList.remove('liked');
+            icon.className = 'far fa-heart';
+            rawCount = Math.max(0, rawCount - 1);
+          } else {
+            // like
+            this.classList.add('liked');
+            icon.className = 'fas fa-heart';
+            rawCount = rawCount + 1;
+          }
+          this.dataset.rawCount = rawCount;
+          countSpan.textContent = formatCount(rawCount);
+        });
+
+        // --- Share button (simulate) ---
+        shareBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // Use Web Share API if available, else alert
+          if (navigator.share) {
+            navigator.share({
+              title: 'Check out this photo',
+              text: `From friends2026 gallery: ${imageName}`,
+              url: imageUrl
+            }).catch(() => {});
+          } else {
+            // fallback: copy link to clipboard
+            navigator.clipboard.writeText(imageUrl).then(() => {
+              alert('🔗 Link copied to clipboard!');
+            }).catch(() => {
+              alert('📎 Share this image: ' + imageUrl);
+            });
+          }
+        });
+
+        // --- Post comment ---
+        postBtn.addEventListener('click', function() {
+          const text = commentInput.value.trim();
+          if (!text) return;
+
+          // Create new comment element
+          const newComment = document.createElement('div');
+          newComment.className = 'comment-item';
+          newComment.innerHTML = `<strong>you</strong><span>${escapeHtml(text)}</span>`;
+
+          // If there's an "empty" placeholder, remove it
+          const emptyMsg = commentList.querySelector('.comment-item[style*="italic"]');
+          if (emptyMsg && emptyMsg.textContent.includes('No comments yet')) {
+            emptyMsg.remove();
+          }
+
+          commentList.appendChild(newComment);
+          commentInput.value = '';
+          // scroll to bottom of comment list
+          commentList.scrollTop = commentList.scrollHeight;
+        });
+
+        // allow pressing Enter in comment input to post
+        commentInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            postBtn.click();
+          }
+        });
+
+        return card;
+      }
+
+      // tiny helper to escape HTML in comments
+      function escapeHtml(unsafe) {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // --------------------------------------------------------------
+      // Fetch gallery images from GitHub
+      // --------------------------------------------------------------
+      async function loadGallery() {
+        try {
+          const response = await fetch(API_URL);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error('Gallery folder not found. Make sure "gallery" folder exists in the repository.');
+            } else {
+              throw new Error(`GitHub API error: ${response.status}`);
+            }
+          }
+
+          const data = await response.json();
+
+          // Filter only image files (jpg, jpeg, png, gif, webp, etc.)
+          const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.avif'];
+          const imageFiles = data.filter(item => {
+            if (item.type !== 'file') return false;
+            const lower = item.name.toLowerCase();
+            return imageExtensions.some(ext => lower.endsWith(ext));
+          });
+
+          if (imageFiles.length === 0) {
+            galleryGrid.innerHTML = `
+              <div class="status-message">
+                <i class="fas fa-image"></i> No images found in the "gallery" folder.
+              </div>
+            `;
+            return;
+          }
+
+          // Clear loading message
+          galleryGrid.innerHTML = '';
+
+          // Create cards for each image
+          imageFiles.forEach(file => {
+            const imageUrl = RAW_BASE + file.name;
+            const card = createCard(file.name, imageUrl);
+            galleryGrid.appendChild(card);
+          });
+
+        } catch (error) {
+          console.error('Error loading gallery:', error);
+          galleryGrid.innerHTML = `
+            <div class="status-message">
+              <i class="fas fa-exclamation-triangle"></i> 
+              ${error.message || 'Failed to load gallery. Please check the repository and try again.'}
+            </div>
+          `;
+        }
+      }
+
+      // --------------------------------------------------------------
+      // Start
+      // --------------------------------------------------------------
+      loadGallery();
+    })();
+  </script>
+</body>
+</html>
